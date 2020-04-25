@@ -1,0 +1,5 @@
+Channel,Frequency,Mode,Step,Delay,Alpha tag,Priority,Lock out
+1,25.0,AM,5.0,1,test,Yes,Yes
+2,0,,0,0,,No,No
+3,0,,0,0,,No,No
+4,0,,0,0,,No,No
