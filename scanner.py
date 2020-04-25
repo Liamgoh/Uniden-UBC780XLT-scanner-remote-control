@@ -59,7 +59,7 @@ Choose a menu item:
 12. Close serial port
 13. Scan
 14. MAN (manual) key press
-14: Exit        
+15: Exit        
     """
 
     quit = False
