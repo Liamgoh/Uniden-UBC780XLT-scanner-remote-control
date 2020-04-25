@@ -39,7 +39,7 @@ class SerialConnection:
         #     strError3 = 'Port ' + str(self.__port) + ' already opened by this program!'
         #     return strError3
         else:
-            #if  # enhance to detect if trying to open a new connection on already opened COM port by the program...
+            # if  # enhance to detect if trying to open a new connection on already opened COM port by the program...
             return ser  # ...otherwise this returns the already opened ser object
 
     # def serObj(self):
@@ -64,7 +64,7 @@ class SerialConnection:
             txt = inputTxt[i].upper()
             # print(txt)  # to debug the string sent to scanner
             ser.write(str.encode(txt + '\r'))
-            time.sleep(0.03)
+            time.sleep(0.035)  # experiment for fastest speed to read/write
             while ser.inWaiting() > 0:
                 out = ser.readline(1)
                 strValue.append(out.decode('utf-8'))

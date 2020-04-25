@@ -57,7 +57,9 @@ Choose a menu item:
 10: Read all scanner channels
 11. Open serial port
 12. Close serial port
-13: Exit        
+13. Scan
+14. MAN (manual) key press
+14: Exit        
     """
 
     quit = False
@@ -161,7 +163,7 @@ Choose a menu item:
             channelNum = inputCheck.inputException(inputText, 'integer', False, '', 'channelRange', inputValidation)
 
             inputText = 'Enter the frequency in MHz. Allowable ranges: ' + permissableFreqRanges
-            freq = inputCheck.inputException(inputText, 'string', True, '', 'freqRange', inputValidation) * 10000  #
+            freq = inputCheck.inputException(inputText, 'float', True, '', 'freqRange', inputValidation) * 10000  #
             # eg format to use to speak to communicate with scanner: 243MHz = 2430000
 
             inputText = 'Enter mode. Mode choices: ' + modeChoices
@@ -208,6 +210,30 @@ Choose a menu item:
                 print('COM port has not been opened yet.')
 
         elif choice == 13:
+            scan = '1'
+            dummy_channel = serialCommand(scan)
+            # scanner_mode = dummy_channel.checkMode()  # no need to check scanner mode of operation...
+            # if scanner_mode == '00':
+            #     scanner_mode = dummy_channel.manualMode()
+            #     print('Manual mode')
+            # else:
+            #     scanner_mode = dummy_channel.scanMode()
+            #     print('Scan mode')
+            dummy_channel.scanMode()
+
+        elif choice == 14:
+            scan = '1'
+            dummy_channel = serialCommand(scan)
+            # scanner_mode = dummy_channel.checkMode()  # no need to check scanner mode of operation...
+            # if scanner_mode == '00':
+            #     scanner_mode = dummy_channel.manualMode()
+            #     print('Manual mode')
+            # else:
+            #     scanner_mode = dummy_channel.scanMode()
+            #     print('Scan mode')
+            dummy_channel.manualMode()
+
+        elif choice == 15:
             quit = True
 
         else:
@@ -271,7 +297,8 @@ def readAll(maxChannel):
         if scannerChannelCommand.viewScannerChannel(channelNumStr) == '':
             freq = 0
         else:
-            freq = float(scannerChannelCommand.viewScannerChannel(channelNumStr)) / 10000
+            outTxt = scannerChannelCommand.viewScannerChannel(channelNumStr)
+            freq = float(outTxt[6:14]) / 10000
         print(channelNum, freq)
         scannerChannel = Channel(channelNum, freq)
         ChannelList[channelNum] = scannerChannel

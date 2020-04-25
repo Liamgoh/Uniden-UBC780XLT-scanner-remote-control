@@ -51,9 +51,34 @@ class serialCommand:
         inputTxt.append('PM' + str(channelNumPadded) + ' ' + freqStr)
         modeStr = channel.viewMode()
         inputTxt.append('RM' + ' ' + modeStr)
-        outTxt = connection.serialIO(inputTxt)
+        serialportObj = SerialPort.SerialConnection()
+        ser = serialportObj.open_connection()
+        outTxt = serialportObj.serialIO(inputTxt, ser)
+        #outTxt = connection.serialIO(inputTxt)
         return(outTxt)
 
     #def readScannerBanks(selfself, ):
 
+    def checkMode(self):
+        inputTxt = []
+        inputTxt.append('MD')
+        serialportObj = SerialPort.SerialConnection()
+        ser = serialportObj.open_connection()
+        outTxt = serialportObj.serialIO(inputTxt, ser)
+        return (outTxt)
 
+    def manualMode(self):
+        inputTxt = []
+        inputTxt.append('KEY01')
+        serialportObj = SerialPort.SerialConnection()
+        ser = serialportObj.open_connection()
+        serialportObj.serialIO(inputTxt, ser)
+        return None
+
+    def scanMode(self):
+        inputTxt = []
+        inputTxt.append('KEY00')
+        serialportObj = SerialPort.SerialConnection()
+        ser = serialportObj.open_connection()
+        serialportObj.serialIO(inputTxt, ser)
+        return None
