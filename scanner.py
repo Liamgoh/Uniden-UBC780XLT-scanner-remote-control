@@ -1,47 +1,17 @@
-from Channel_module import Channel
-from csvfile import write_csv, read_csv_program_scanner
-from serialCommand_module import serialCommand
-import inputCheck
-import SerialPort
+import Channel
+import csvfile
+import serialCommand
 
 ChannelList = []
-minChannel = 1
-maxChannel = 500
-inputValidation = {}
-connection = None
-
 
 def scanner():
+    minChannel = 1
+    maxChannel = 500
     global ChannelList
-    global minChannel
-    global maxChannel
-    global inputValidation
-    global connection
-
-    inputValidation = {
-        'channelRange': [minChannel, maxChannel],
-        'freqRange': [[25, 512], [806, 956], [1240, 1300]],
-        'validModes': ['AM', 'FM', 'NFM', 'WFM'],
-        'validSteps': [5, 10, 12.5, 50, 100],
-        'validDelay': [1, 4],
-        'validChars': 16,
-        'validPriorityLockout': ['Y', 'N']
-    }
-
-    minRange = str(inputValidation['channelRange'][0])
-    maxRange = str(inputValidation['channelRange'][1])
-    permissableFreqRanges = str(inputValidation['freqRange'])
-    modeChoices = str(inputValidation['validModes'])
-    stepChoices = str(inputValidation['validSteps'])
-    delayChoices = str(inputValidation['validDelay'])
-    maxChars = int(inputValidation['validChars'])
-    validEntries = str(inputValidation['validPriorityLockout'])
-
     error = False
-    ChannelList = [Channel(i) for i in range(maxChannel)]  # list comprehension
-    # ChannelList = [Channel(i) for i in range(maxChannel - 1)]  # list comprehension
-    # for i in range(maxChannel):
-    #  ChannelList.append(Channel(i))
+    ChannelList = [Channel.Channel(i) for i in range(maxChannel - 1)] #list comprehension
+    #for i in range(maxChannel):
+     #   ChannelList.append(Channel(i))
 
     menuChoices = """
 Choose a menu item:
@@ -55,189 +25,201 @@ Choose a menu item:
 8: Write scanner channel
 9: Read scanner bank(s)
 10: Read all scanner channels
-11. Open serial port
-12. Close serial port
-13. Scan
-14. MAN (manual) key press
-15: Exit        
+11: Exit        
     """
 
-    quit = False
-    while not quit:
-
-        choice = inputCheck.inputException(menuChoices, 'integer', False, menuChoices, '', '')
-        print('Menu choice is:', choice)
-
-        if choice == 1:
-
-            inputText = 'Enter the channel number to create. Range between: ' + minRange + ' and ' + maxRange
-            channelNum = inputCheck.inputException(inputText, 'integer', False, '', 'channelRange', inputValidation)
-            print('Channel is:', channelNum)
-
-            inputText = 'Enter the frequency in MHz. Allowable ranges: ' + permissableFreqRanges
-            freq = inputCheck.inputException(inputText, 'float', False, '', 'freqRange', inputValidation)
-            print('Frequency is:', freq, 'MHz')
-
-            inputText = 'Enter mode. Mode choices: ' + modeChoices
-            mode = inputCheck.inputException(inputText, 'string', True, '', 'validModes', inputValidation)
-            print('Mode is:', mode)
-
-            inputText = 'Enter step. Step choices: ' + stepChoices
-            step = inputCheck.inputException(inputText, 'float', False, '', 'validSteps', inputValidation)
-            print('Step is:', step)
-
-            inputText = 'Enter delay. Integer values between: ' + delayChoices
-            delay = inputCheck.inputException(inputText, 'integer', False, '', 'validDelay', inputValidation)
-
-            inputText = 'Enter alpha tag. Maximum characters: ' + str(maxChars)
-            alphaTag = inputCheck.inputException(inputText, 'string', False, '', 'validChars', inputValidation)
-            print('Alpha tag is:', alphaTag)
-
-            inputText = 'Priority channel. Enter: ' + str(validEntries)
-            priority = inputCheck.inputException(inputText, 'string', True, '', 'validPriorityLockout', inputValidation)
-
-            inputText = 'Lockout channel? Enter:' + str(validEntries)
-            lockout = inputCheck.inputException(inputText, 'string', True, '', 'validPriorityLockout', inputValidation)
-            print('Lockout channel:', lockout)
-
-            channel = Channel(channelNum, freq, mode, step, delay, alphaTag, priority, lockout)
-            ChannelList.insert(channelNum - 1, channel)
-
-        elif choice == 2:
-
+    while True:
+        quit = False
+        invalidMenuChoice = False
+        while quit == False:
             error = True
-            while error:
+            while error == True:
                 try:
-                    channelNum = int(input('Enter channel number\n'))
+                    choice = int(input(menuChoices))
                     error = False
                 except ValueError:
-                    print('Please enter an integer between', minChannel, 'and', maxChannel, '!\n')  # enhance to
-                    # check between min & max channels
-                else:
-                    if channelNum < minChannel or channelNum > maxChannel:
-                        print('Channel out of range')
+                    print('Please enter an integer!\n')
+
+            if choice == 1:
+
+                error = True
+                while error == True:
+                    try:
+                        channelNum = int(input('Enter the channel number to create\n'))
+                        error = False
+                    except ValueError:
+                        print('Please enter an integer!\n') #enhance to check between min & max channels
+
+                error = True
+                while error == True:
+                    try:
+                        freq = float(input('Enter frequency in MHz\n'))
+                        error = False
+                    except ValueError:
+                        print('Please enter a float!\n') #enhance to check frequency range of scanner
+
+                error = True
+                while error == True:
+                    try:
+                        mode = str(input('Enter mode: AM, FM, NFM, WFM\n'))
+                    except ValueError:
+                        print('Please enter a string!\n') #enhance to ensure a valid mode
                     else:
-                        channel = ChannelList[channelNum - 1]
-                        print('Properties of channel', channelNum)
-                        print('Frequency: ', channel.viewFreq())
-                        print('Mode: ', channel.viewMode())
-                        print('Step: ', channel.viewStep())
-                        print('Delay: ', channel.viewDelay())
-                        print('Alpha tag: ', channel.viewAlphaTag())
-                        print('Priority: ', channel.viewPriority())
-                        print('Lockout: ', channel.viewLockout())
+                        if mode.isalpha() == True:
+                            error = False
+                        else:
+                            print('Please enter only letters!\n')
 
-        elif choice == 3:
-            channelNum = int(input('Enter channel number to delete\n'))
-            channel = Channel(channelNum)
-            ChannelList.insert(channelNum - 1, channel)
+                error = True
+                while error == True:
+                    try:
+                        step = float(input('Enter step\n'))
+                        error = False
+                    except ValueError:
+                        print('Please enter a float!\n') #enhance to ensure valid step
 
-        elif choice == 4:
-            write_csv(ChannelList)
+                error = True
+                while error == True:
+                    try:
+                        delay = int(input('Enter delay\n'))
+                        error = False
+                    except ValueError:
+                        print('Please enter a float!\n') #enhance to ensure valid delay
 
-        elif choice == 5:
-            for i in range(maxChannel):
-                print(i)
-                channel = ChannelList[i]
-                print(len(ChannelList))
-                channelNum = i + 1
-                print('Properties of channel', channelNum)
-                print('Frequency: ', channel.viewFreq())
-                print('Mode: ', channel.viewMode())
-                print('Step: ', channel.viewStep())
-                print('Delay: ', channel.viewDelay())
-                print('Alpha tag: ', channel.viewAlphaTag())
-                print('Priority: ', channel.viewPriority())
-                print('Lockout: ', channel.viewLockout())
+                error = True
+                while error == True:
+                    try:
+                        alphaTag = str(input('Enter alpha tag\n'))
+                        error = False
+                    except ValueError:
+                        print('Please enter a string!\n') #enhance to ensure within max number of characters
 
-        elif choice == 6:
-            read_csv_program_scanner()
+                error = True
+                while error == True:
+                    try:
+                        priorityStr = str(input('Priorty y or n?\n'))
+                    except ValueError:
+                        print('Enter y or n\n')
+                    else:
+                        if priorityStr.isalpha() == True:
+                            if priorityStr == 'y':
+                                priority = True
+                            else:
+                                priority = False
+                            error = False
+                        else:
+                            print('Please enter only letters!')
 
-        elif choice == 7:
-            channelNum = str(input('Enter scanner channel number\n'))
-            scannerChannel = serialCommand(channelNum)
-            print('Scanner data for channel', channelNum, 'is:', scannerChannel.viewScannerChannel(channelNum))
+                error = True
+                while error == True:
+                    try:
+                        lockoutStr = str(input('Lockout y or n?\n'))
+                    except ValueError:
+                        print('Enter y or n\n')
+                    else:
+                        if lockoutStr.isalpha() == True:
+                            if lockoutStr == 'y':
+                                lockout = True
+                            else:
+                                lockout = False
+                            error = False
+                        else:
+                            print('Please enter only letters!')
 
-        elif choice == 8:
-            inputText = 'Enter the channel number to create. Range between: ' + minRange + ' and ' + maxRange
-            channelNum = inputCheck.inputException(inputText, 'integer', False, '', 'channelRange', inputValidation)
+                channel = Channel.Channel(channelNum, freq, mode, step, delay, alphaTag, priority, lockout)
+                ChannelList.insert(channelNum - 1,channel)
 
-            inputText = 'Enter the frequency in MHz. Allowable ranges: ' + permissableFreqRanges
-            freq = inputCheck.inputException(inputText, 'float', True, '', 'freqRange', inputValidation) * 10000  #
-            # eg format to use to speak to communicate with scanner: 243MHz = 2430000
+            elif choice == 2:
 
-            inputText = 'Enter mode. Mode choices: ' + modeChoices
-            mode = inputCheck.inputException(inputText, 'string', True, '', 'validModes', inputValidation)
 
-            inputText = 'Enter step. Step choices: ' + stepChoices
-            step = inputCheck.inputException(inputText, 'float', False, '', 'validSteps', inputValidation)
+                error = True
+                while error == True:
+                    try:
+                        channelNum = int(input('Enter channel number\n'))
+                        error = False
+                    except ValueError:
+                        print('Please enter an integer between', minChannel, 'and', maxChannel,'!\n')  # enhance to check between min & max channels
+                    else:
+                        if channelNum < minChannel or channelNum > maxChannel:
+                            print('Channel out of range')
+                        else:
+                            channel = ChannelList[channelNum - 1]
+                            print('Properties of channel', channelNum)
+                            print('Frequency: ', channel.viewFreq())
+                            print('Mode: ', channel.viewMode())
+                            print('Step: ', channel.viewStep())
+                            print('Delay: ', channel.viewDelay())
+                            print('Alpha tag: ', channel.viewAlphaTag())
+                            print('Priority: ', channel.viewPriority())
+                            print('Lockout: ', channel.viewLockout())
 
-            inputText = 'Enter delay. Integer values between: ' + delayChoices
-            delay = inputCheck.inputException(inputText, 'integer', False, '', 'validDelay', inputValidation)
+            elif choice == 3:
+                channelNum = int(input('Enter channel number to delete\n'))
+                channel = Channel(channelNum)
+                ChannelList.insert(channelNum - 1, channel)
 
-            inputText = 'Enter alpha tag. Maximum characters: ' + str(maxChars)
-            alphaTag = inputCheck.inputException(inputText, 'string', False, '', 'validChars', inputValidation)
+            elif choice == 4:
+                 write_csv(ChannelList)
 
-            inputText = 'Priority channel. Enter: ' + str(validEntries)
-            priority = inputCheck.inputException(inputText, 'string', True, '', 'validPriorityLockout', inputValidation)
+            elif choice == 5:
+                for i in range(maxChannel):
+                    channel = ChannelList[i]
+                    channelNum = i + 1
+                    print('Properties of channel', channelNum)
+                    print('Frequency: ', channel.viewFreq())
+                    print('Mode: ', channel.viewMode())
+                    print('Step: ', channel.viewStep())
+                    print('Delay: ', channel.viewDelay())
+                    print('Alpha tag: ', channel.viewAlphaTag())
+                    print('Priority: ', channel.viewPriority())
+                    print('Lockout: ', channel.viewLockout())
 
-            inputText = 'Lockoutchannel? Enter: ' + str(validEntries)
-            lockout = inputCheck.inputException(inputText, 'string', True, '', 'validPriorityLockout', inputValidation)
+            elif choice == 6:
+                read_csv_program_scanner()
 
-            channel = Channel(channelNum, freq, mode, step, delay, alphaTag, priority, lockout)
-            scannerChannel = serialCommand(channelNum)
-            print(scannerChannel.programScannerChannel(channelNum, channel))
+            elif choice == 7:
+                channelNum = str(input('Enter scanner channel number\n'))
+                scannerChannel = serialCommand(channelNum)
+                print('Scanner data for channel', channelNum, 'is:', scannerChannel.viewScannerChannel(channelNum))
 
-        elif choice == 9:
-            bankNum = int(input('Enter a bank number to read'))
-            readBank(bankNum)
+            elif choice == 8:
+                #channelNum = str(input('Enter scanner channel number to program\n'))
+                channelNum = int(input('Enter the channel number to create\n'))
+                freq = float(input('Enter a frequency in format 243MHz = 2430000\n'))
+                mode = str(input('Enter a mode\n').upper())
+                #step = float(input('Enter a step\n'))
+                #delay = int(input('Enter a delay\n'))
+                #alphaTag = str(input('Enter an alpha tag\n'))
+                #priorityStr = str(input('Priority y or n?\n'))
+                #if priorityStr == 'y':
+                 #   priority = True
+                #else:
+                 #   priority = False
+                #lockoutStr = str(input('Lockout y or n?\n'))
+                #if lockoutStr == 'y':
+                 #   lockout = True
+                #else:
+                 #   lockout = False
+                channel = Channel(channelNum, freq, mode)
+                scannerChannel = serialCommand(channelNum)
+                print(scannerChannel.programScannerChannel(channelNum, channel))
 
-        elif choice == 10:
-            readAll(maxChannel)
+            elif choice == 9:
+                bankNum = int(input('Enter a bank number to read'))
+                readBank(bankNum)
 
-        elif choice == 11:  # add exception handling for integer port numbers & permissable baud rates: 2400, 4800,
-            # 9600, 19200...
-            port = int(input('Enter COM port to connect to scanner'))
-            portStr = 'COM' + str(port)
-            baudrate = int(input('Enter baudrate'))
-            connection = SerialPort.SerialConnection()
-            print(connection.open_connection(portStr, baudrate, 1))
+            elif choice == 10:
+                readAll(maxChannel)
 
-        elif choice == 12:
-            try:
-                print(connection.close_connection())
-            except AttributeError:  # COM port has not been opened yet...
-                print('COM port has not been opened yet.')
+            elif choice == 11:
+                quit = True
 
-        elif choice == 13:
-            scan = '1'
-            dummy_channel = serialCommand(scan)
-            # scanner_mode = dummy_channel.checkMode()  # no need to check scanner mode of operation...
-            # if scanner_mode == '00':
-            #     scanner_mode = dummy_channel.manualMode()
-            #     print('Manual mode')
-            # else:
-            #     scanner_mode = dummy_channel.scanMode()
-            #     print('Scan mode')
-            dummy_channel.scanMode()
+            else:
+                print('Invalid choice')
+                invalidMenuChoice = True
+                   # else:
+                      #  print('Invalid account id')
 
-        elif choice == 14:
-            scan = '1'
-            dummy_channel = serialCommand(scan)
-            # scanner_mode = dummy_channel.checkMode()  # no need to check scanner mode of operation...
-            # if scanner_mode == '00':
-            #     scanner_mode = dummy_channel.manualMode()
-            #     print('Manual mode')
-            # else:
-            #     scanner_mode = dummy_channel.scanMode()
-            #     print('Scan mode')
-            dummy_channel.manualMode()
-
-        elif choice == 15:
-            quit = True
-
-        else:
-            print('Invalid menu choice')
 
 
 def readBank(bankNum):
@@ -287,7 +269,6 @@ def readBank(bankNum):
         ChannelList[channelNum] = scannerChannel
     print(ChannelList)
 
-
 def readAll(maxChannel):
     global ChannelList
     ChannelList = [Channel(i) for i in range(1, maxChannel + 2)]
@@ -297,9 +278,17 @@ def readAll(maxChannel):
         if scannerChannelCommand.viewScannerChannel(channelNumStr) == '':
             freq = 0
         else:
-            outTxt = scannerChannelCommand.viewScannerChannel(channelNumStr)
-            freq = float(outTxt[6:14]) / 10000
+            freq = float(scannerChannelCommand.viewScannerChannel(channelNumStr)) / 10000
         print(channelNum, freq)
         scannerChannel = Channel(channelNum, freq)
         ChannelList[channelNum] = scannerChannel
     print(ChannelList)
+
+
+
+
+
+
+
+
+
