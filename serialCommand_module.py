@@ -1,4 +1,5 @@
 import SerialPort
+import scanner
 
 class serialCommand:
     def __init__(self,channelNum):
@@ -73,6 +74,7 @@ class serialCommand:
         serialportObj = SerialPort.SerialConnection()
         ser = serialportObj.open_connection()
         serialportObj.serialIO(inputTxt, ser)
+        scanner.freq_display()
         return None
 
     def scanMode(self):
